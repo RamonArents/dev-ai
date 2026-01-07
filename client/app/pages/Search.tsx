@@ -58,7 +58,9 @@ export function Search():JSX.Element {
         </button>
       </form>
       <div className="max-w-xl space-y-4">
-        {answer.map((item, index) => (
+        {answer?.map((item, index) => 
+        (
+       
           <div
             key={index}
             className="p-4 bg-white rounded-xl shadow-sm border"

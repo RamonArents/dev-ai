@@ -12,9 +12,16 @@ interface IResAttributes {
   displayed_link: string;
 }
 
+//Ai types
+interface IAiAttributes {
+  type:string;
+  snippet:string;  
+}
+
 //Attributes of above type are in organic_results. Therefore we use this interface
 interface ISerpApiResponse {
-  organic_results?: IResAttributes[];
+  references?: IResAttributes[];
+  text_blocks?: IAiAttributes[];
 }
 
 //Express default settings
@@ -52,7 +59,7 @@ app.post("/api/search", async (req: Request, res: Response) => {
 
     //Await response using searchQuery as parameter
     const response = await fetch(
-      `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(
+      `https://serpapi.com/search?engine=google_ai_mode&q=${encodeURIComponent(
         searchQuery
       )}&api_key=${apiKey}`
     );
@@ -60,11 +67,15 @@ app.post("/api/search", async (req: Request, res: Response) => {
     //Get results using our interfaces
     const data = (await response.json()) as ISerpApiResponse;
 
-    const results = (data.organic_results || []).map((item: IResAttributes) => ({
-      title: item.title,
-      link: item.link,
-      snippet: item.snippet,
-      source: item.displayed_link,
+    console.log(data)
+
+    const results = (data.text_blocks || []).map((item: IAiAttributes) => ({
+      snippet: item.type === "paragraph" && item.snippet
+      //TODO: Return combined data
+      // title: item.title,
+      // link: item.link,
+      // snippet: item.snippet,
+      // source: item.displayed_link,
     }));
 
     res.json({ results });
