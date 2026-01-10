@@ -4,12 +4,11 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 
-//Types of serp api that we return to the user
-interface IResAttributes {
+//Source types
+interface IRefAttributes {
   title: string;
+  snippet:string;
   link: string;
-  snippet: string;
-  displayed_link: string;
 }
 
 //Ai types
@@ -20,7 +19,7 @@ interface IAiAttributes {
 
 //Attributes of above type are in organic_results. Therefore we use this interface
 interface ISerpApiResponse {
-  references?: IResAttributes[];
+  references?:IRefAttributes[];
   text_blocks?: IAiAttributes[];
 }
 
@@ -67,16 +66,17 @@ app.post("/api/search", async (req: Request, res: Response) => {
     //Get results using our interfaces
     const data = (await response.json()) as ISerpApiResponse;
 
-    console.log(data)
-
-    const results = (data.text_blocks || []).map((item: IAiAttributes) => ({
-      snippet: item.type === "paragraph" && item.snippet
-      //TODO: Return combined data
-      // title: item.title,
-      // link: item.link,
-      // snippet: item.snippet,
-      // source: item.displayed_link,
+    const text_blocks = (data.text_blocks || []).map((item: IAiAttributes) => ({
+      snippet: item.type === "paragraph" && item.snippet,
     }));
+
+    const references = (data.references || []).map((item: IRefAttributes) => ({
+      title: item.title,
+      snippet: item.snippet,
+      link: item.link,
+    }))
+
+    const results = [...text_blocks, ...references];
 
     res.json({ results });
   } catch (err) {
