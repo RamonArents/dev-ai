@@ -11,14 +11,18 @@ export function Search(): JSX.Element {
   //Query and answer states
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
   /**
    * Handle search results
    * @param e React.FormEvent<HTMLFormElement>
    */
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
-    //TODO: Add loading bar
     e.preventDefault();
+
+    //Wait till data is loaded
+    setLoading(true);
+
     if (query !== "") {
       //Await response from api
       const res = await fetch("http://localhost:3001/api/search", {
@@ -29,8 +33,15 @@ export function Search(): JSX.Element {
 
       //Check response and catch error
       try {
+
         const data = await res.json();
-        setAnswer(data.results);
+
+        if (data) {
+          //When we have response we set the loading on false end put the data into the answer
+          setLoading(false);
+          setAnswer(data.results);
+        }
+
       } catch (error) {
         console.error("Something went wrong");
       }
@@ -59,6 +70,7 @@ export function Search(): JSX.Element {
           Search
         </button>
       </form>
+      {loading && <div className="loader"></div>} {/* Loading bar */}
       <div className="max-h-[50vh] max-w-xl space-y-4 pb-10 overflow-auto">
         {answer?.map((item, index) =>
           item.snippet && (
