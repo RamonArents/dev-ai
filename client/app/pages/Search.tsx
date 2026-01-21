@@ -1,4 +1,4 @@
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 //Type of search result
 interface SearchResult {
@@ -12,6 +12,7 @@ export function Search(): JSX.Element {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [timeoutMsg, setTimeoutMsg] = useState("");
 
   /**
    * Handle search results
@@ -20,10 +21,11 @@ export function Search(): JSX.Element {
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    //Wait till data is loaded
-    setLoading(true);
+    //TODO: Add timeout if server unavailable
 
     if (query !== "") {
+      //Wait till data is loaded
+      setLoading(true);
       //Await response from api
       const res = await fetch("http://localhost:3001/api/search", {
         method: "POST",
@@ -33,7 +35,6 @@ export function Search(): JSX.Element {
 
       //Check response and catch error
       try {
-
         const data = await res.json();
 
         if (data) {
@@ -43,11 +44,16 @@ export function Search(): JSX.Element {
         }
 
       } catch (error) {
-        console.error("Something went wrong");
+        console.error("Something went wrong", error);
       }
     }
 
   };
+
+  //Empty answer on loading for first time.
+  useEffect(() => {
+    setAnswer([]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6">
@@ -67,9 +73,10 @@ export function Search(): JSX.Element {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
         >
-          Search
+          Search     {<p>{timeoutMsg}</p>}
         </button>
       </form>
+
       {loading && <div className="loader"></div>} {/* Loading bar */}
       <div className="max-h-[50vh] max-w-xl space-y-4 pb-10 overflow-auto">
         {answer?.map((item, index) =>
