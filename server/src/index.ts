@@ -3,25 +3,7 @@ dotenv.config();
 import express, { Request, Response } from "express";
 import cors from "cors";
 import fetch from "node-fetch";
-
-//Source types
-interface IRefAttributes {
-  title: string;
-  snippet:string;
-  link: string;
-}
-
-//Ai types
-interface IAiAttributes {
-  type:string;
-  snippet:string;  
-}
-
-//Attributes of above type are in organic_results. Therefore we use this interface
-interface ISerpApiResponse {
-  references?:IRefAttributes[];
-  text_blocks?: IAiAttributes[];
-}
+import { IAiAttributes, IRefAttributes, ISerpApiResponse } from "./types";
 
 //Express default settings
 const app = express();

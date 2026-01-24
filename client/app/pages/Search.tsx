@@ -12,7 +12,7 @@ export function Search(): JSX.Element {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timeoutMsg, setTimeoutMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   /**
    * Handle search results
@@ -21,30 +21,34 @@ export function Search(): JSX.Element {
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    //TODO: Add timeout if server unavailable
-
     if (query !== "") {
       //Wait till data is loaded
       setLoading(true);
-      //Await response from api
-      const res = await fetch("http://localhost:3001/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      });
-
       //Check response and catch error
       try {
+        //Await response from api
+        const res = await fetch("http://localhost:3001/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+
         const data = await res.json();
 
         if (data) {
           //When we have response we set the loading on false end put the data into the answer
           setLoading(false);
           setAnswer(data.results);
+          //If there was an error before, we now clear the message
+          setErrorMsg("");
         }
 
       } catch (error) {
         console.error("Something went wrong", error);
+        setLoading(false);
+        setErrorMsg("Something went wrong. Try again later.");
+        
       }
     }
 
@@ -57,6 +61,7 @@ export function Search(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6">
+      {/* Form and title */}
       <h1 className="text-3xl font-semibold text-gray-500">Welcome to dev-ai</h1>
       <form
         onSubmit={handleSearch}
@@ -73,11 +78,12 @@ export function Search(): JSX.Element {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
         >
-          Search     {<p>{timeoutMsg}</p>}
+          Search
         </button>
       </form>
-
+      <p className="text-gray-500">{errorMsg}</p> {/* Error message if something went wrong */}
       {loading && <div className="loader"></div>} {/* Loading bar */}
+      {/* Results */}
       <div className="max-h-[50vh] max-w-xl space-y-4 pb-10 overflow-auto">
         {answer?.map((item, index) =>
           item.snippet && (
